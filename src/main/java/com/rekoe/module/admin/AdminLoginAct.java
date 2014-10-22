@@ -3,7 +3,9 @@ package com.rekoe.module.admin;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationToken;
+import org.apache.shiro.authc.IncorrectCredentialsException;
 import org.apache.shiro.authc.LockedAccountException;
+import org.apache.shiro.authc.UnknownAccountException;
 import org.apache.shiro.authz.annotation.RequiresAuthentication;
 import org.apache.shiro.session.SessionException;
 import org.apache.shiro.subject.Subject;
@@ -27,9 +29,7 @@ import com.rekoe.domain.User;
 import com.rekoe.exception.IncorrectCaptchaException;
 import com.rekoe.filter.CaptchaFormAuthenticationFilter;
 
-/**
- * @author 科技㊣²º¹³ 2014年2月6日 下午8:19:23 http://www.rekoe.com QQ:5382211
- */
+
 @IocBean
 @At("/admin")
 public class AdminLoginAct {
@@ -43,15 +43,15 @@ public class AdminLoginAct {
 			ThreadContext.bind(subject);
 			subject.login(token);
 			return new ServerRedirectView("/admin/main.rk");
+		} catch (LockedAccountException e) {
+			return new ViewWrapper(new ForwardView("/admin/index.rk"), e.getMessage());
+		} catch (UnknownAccountException e) {
+			return new ViewWrapper(new ForwardView("/admin/index.rk"), e.getMessage());
 		} catch (IncorrectCaptchaException e) {
 			return new ViewWrapper(new ForwardView("/admin/index.rk"), e.getMessage());
-		} catch (LockedAccountException e) {
-			// Map<String, Object> msgs = Mvcs.getLocaleMessage("zh_CN");
-			// String errMsg = msgs.get("admin.login.lockedAccount").toString();
-			return new ViewWrapper(new ForwardView("/admin/index.rk"), e.getMessage());
+		}catch(IncorrectCredentialsException e){
+			return new ViewWrapper(new ForwardView("/admin/index.rk"), "密码错误");
 		} catch (AuthenticationException e) {
-			// Map<String, Object> msgs = Mvcs.getLocaleMessage("zh_CN");
-			// String errMsg = msgs.get("login_error").toString();
 			return new ViewWrapper(new ForwardView("/admin/index.rk"), e.getMessage());
 		} catch (Exception e) {
 			return new ViewWrapper(new ForwardView("/admin/index.rk"), e.getMessage());

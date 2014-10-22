@@ -5,17 +5,21 @@ import static org.quartz.JobBuilder.newJob;
 import static org.quartz.TriggerBuilder.newTrigger;
 
 import org.nutz.ioc.loader.annotation.IocBean;
+import org.nutz.log.Log;
+import org.nutz.log.Logs;
 import org.quartz.CronTrigger;
 import org.quartz.Job;
 import org.quartz.JobDetail;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
+import org.quartz.Trigger;
 import org.quartz.impl.StdSchedulerFactory;
 
 @IocBean(create = "init", depose = "depose")
 public class QuartzService {
 
+	private final static Log log = Logs.get();
 	private Scheduler scheduler;
 
 	public void addTask(Class<Job> cls, String cron) throws SchedulerException {
@@ -42,5 +46,17 @@ public class QuartzService {
 
 	public boolean delete(String name, String group) throws SchedulerException {
 		return scheduler.deleteJob(new JobKey(name, group));
+	}
+
+	public void scheduleJob(JobDetail job, Trigger trigger) {
+		try {
+			scheduler.scheduleJob(job, trigger);
+		} catch (SchedulerException e) {
+			log.error(e.getMessage(), e);
+		}
+	}
+
+	public Scheduler getScheduler() {
+		return scheduler;
 	}
 }
